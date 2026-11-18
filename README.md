@@ -396,6 +396,35 @@ PdfCraft is a clean-room implementation. Its behaviour comes from the ISO 32000 
 
 Building needs Rust 1.95 or later.
 
+### Keeping build output small
+
+Cargo creates `target/` for compiled dependencies, app and test binaries, debug
+information, and incremental compilation caches. Packaging scripts create `dist/`
+for installers, portable archives, and unpacked packages. Both directories are
+ignored by Git and can be regenerated; they are not source files.
+
+For routine development, use the existing `low-disk` profile consistently:
+
+```sh
+cargo build --profile low-disk -p pdfcraft
+cargo test --profile low-disk -p pdfcraft-edit
+cargo clippy --profile low-disk -p pdfcraft-edit --all-targets -- -D warnings
+```
+
+Replace `pdfcraft-edit` with the crate being changed. This profile disables
+incremental compilation to save disk space, at the cost of slower rebuilds after
+edits. Separate profiles and target platforms retain separate build output, so
+avoid unnecessary profile changes and workspace-wide builds. Use release builds
+when validating or packaging a release.
+
+After stopping builds and the locally built app, `cargo clean` removes Cargo
+build output. On Windows, [cleanup-build-output.bat](cleanup-build-output.bat)
+removes both `target/` and `dist/` beside the script and reports any errors; run
+it as administrator only if permissions require it. Copy any installer or
+portable package you want to keep elsewhere first. The next build must regenerate
+its output. Keep `.git/`, source, assets, tests, `vendor/`, documentation, and
+Cargo manifests and lockfiles.
+
 ```sh
 git clone https://github.com/storytold/pdfcraft
 cd pdfcraft

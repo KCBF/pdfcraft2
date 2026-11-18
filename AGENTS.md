@@ -183,6 +183,24 @@ PdfCraft opens files from strangers, and people trust it with their work. A malf
 - `plan/` is an optional gitignored notebook. Do not ask for it and do not stop when it is absent. Public status is [`ROADMAP.md`](ROADMAP.md), [`docs/gaps.md`](docs/gaps.md) and [`docs/roadmap.md`](docs/roadmap.md). "Shipped" in `parity/` means exists and tested, not parity with Acrobat.
 - `cargo run -p pdfcraft -- <file.pdf>` opens the app. `pdfcraft-cli run` drives the engine headlessly. `cargo xtask fuzz` findings stay in `fuzz-out/` and become synthetic tests. For UI work, look at a screenshot from `--control` or the `shot` example.
 
+## Build storage discipline
+
+- Use the existing `low-disk` Cargo profile for routine local builds, tests, and
+  clippy: pass `--profile low-disk` and scope `-p` to the relevant crates. It
+  disables incremental compilation; rebuilds after edits take longer. Required
+  quality gates still apply.
+- Reuse one profile and target directory where practical. Additional profiles,
+  target platforms, and separate build directories duplicate build output.
+  Generate release packages only when the task requires them.
+- `target/` is regenerable compiler output; `dist/` is generated packaging output.
+  Keep only needed packages and clean obsolete output after a milestone when
+  authorized. Stop builds and locally built apps before cleanup, preserve any
+  packages the user wants, validate deletion paths, and refuse linked directories.
+- Use `cargo clean` for Cargo output, or `cleanup-build-output.bat` on Windows
+  to remove both repository-local output directories. Never treat `.git/`,
+  source, assets, tests, `vendor/`, documentation, local work, or external build
+  inputs as disposable build caches. Report cleanup and the rebuild tradeoff.
+
 ## Contributor credits (About window)
 
 - About ▸ Contributors/Models are compiled into the binary from `contributors/contributors.json`
